@@ -1,0 +1,20 @@
+jenkins:
+  systemMessage: "Jenkins configured automatically by JCasC"
+
+  authorizationStrategy:
+    unsecured: {}
+
+tool:
+  maven:
+    installations:
+      - name: maven3
+        home: "/maven3"
+        properties:
+          - installSource:
+              installers:
+                - maven:
+                    id: "3.8.4"
+
+unclassified:
+  location:
+    url: http://localhost:8080
