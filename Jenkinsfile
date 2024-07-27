@@ -12,7 +12,7 @@ pipeline {
         stage ('Build') {
             steps {
                 echo ('Building project with Maven...')
-                withMaven(maven: 'maven3') {
+                withMaven {
                     sh 'mvn build'
                 }
             }

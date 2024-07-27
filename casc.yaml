@@ -8,7 +8,6 @@ tool:
   maven:
     installations:
       - name: maven3
-        home: "/maven3"
         properties:
           - installSource:
               installers:
