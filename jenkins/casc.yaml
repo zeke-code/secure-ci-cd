@@ -7,7 +7,7 @@ jenkins:
 tool:
   maven:
     installations:
-      - name: maven3
+      - name: "maven3"
         properties:
           - installSource:
               installers:
@@ -17,3 +17,10 @@ tool:
 unclassified:
   location:
     url: http://localhost:8080
+
+  sonarglobalconfiguration:
+    buildWrapperEnabled: true
+    installations:
+      - name: "SonarQube"
+        serverUrl: "http://sonarqube:9000"
+        serverAuthenticationToken: "${SONARQUBE_TOKEN}"
