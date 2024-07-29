@@ -1,0 +1,2 @@
+# File to clean docker up to avoid cache errors
+cleanup_docker.sh
