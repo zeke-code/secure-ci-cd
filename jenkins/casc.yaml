@@ -3,6 +3,11 @@ jenkins:
 
   authorizationStrategy:
     unsecured: {}
+  globalNodeProperties:
+    - envVars:
+        env:
+          - key: SONARQUBE_TOKEN
+            value: "${SONARQUBE_TOKEN}"
 
 tool:
   maven:
@@ -36,30 +41,46 @@ jobs:
 
                           environment {
                               SONARQUBE_SERVER = 'SonarQube'
+                              SONARQUBE_URL = 'http://localhost:9000'
+                              SONARQUBE_USER = 'admin'
+                              SONARQUBE_PASSWORD = 'admin'
                           }
 
                           stages {
-                              stage ('Check-out') {
+                              stage('Load Environment Variable') {
                                   steps {
-                                      echo ('Cloning repository')
+                                      script {
+                                          def envVars = readFile('/var/jenkins_home/sonarqube_token.env').trim().split('=')
+                                          def token = envVars[1]
+                                          env.SONARQUBE_TOKEN = token
+                                          echo "Loaded SonarQube Token"
+                                      }
+                                  }
+                              }
+
+                              stage('Check-out') {
+                                  steps {
+                                      echo 'THIS IS MY AUTHENTICATION TOKEN'
+                                      echo "${env.SONARQUBE_TOKEN}"
+                                      echo 'Cloning repository'
                                       git 'https://github.com/shashirajraja/onlinebookstore.git'
                                   }
                               }
 
-                              stage ('Build') {
+                              stage('Build') {
                                   steps {
-                                      echo ('Building project with Maven...')
+                                      echo 'Building project with Maven...'
                                       withMaven(maven: 'maven3') {
                                           sh 'mvn clean install'
                                       }
                                   }
                               }
 
-                              stage ('SAST Analysis') {
+                              stage('SAST Analysis') {
                                   steps {
-                                      echo ('Running SonarQube analysis...')
+                                      echo 'Running SonarQube analysis...'
                                       withSonarQubeEnv('SonarQube') {
-                                          sh "mvn sonar:sonar -Dsonar.login=squ_151768c935829ad184107471a679d7c26242ffb9"
+                                          sh "mvn sonar:sonar -Dsonar.login=${env.SONARQUBE_TOKEN}"
                                       }
                                   }
                               }
@@ -77,21 +98,21 @@ jobs:
 
                               stage('Archive') {
                                   steps {
-                                      echo ('Archiving artifacts...')
+                                      echo 'Archiving artifacts...'
                                       archiveArtifacts artifacts: '**/target/*.jar', allowEmptyArchive: true
                                   }
                               }
 
                               stage('Notify') {
                                   steps {
-                                      echo ('Sending notification...')
+                                      echo 'Sending notification...'
                                   }
                               }
                           }
 
                           post {
                               failure {
-                                  echo ('Build failed, sending notification...')
+                                  echo 'Build failed, sending notification...'
                               }
                           }
                       }

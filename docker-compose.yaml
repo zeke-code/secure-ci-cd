@@ -1,4 +1,4 @@
-version: "3.9"
+version: "3.8"
 
 services:
   jenkins:
@@ -8,6 +8,9 @@ services:
       - "8080:8080"
     volumes:
       - jenkins_home:/var/jenkins_home
+    depends_on:
+      - sonarqube
+    entrypoint: ["/usr/local/bin/retrieve_token.sh"]
 
   sonarqube:
     image: sonarqube:lts

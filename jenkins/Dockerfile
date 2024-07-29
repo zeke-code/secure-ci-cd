@@ -21,5 +21,17 @@ RUN apt-get update && apt-get install -y maven
 RUN curl -fsSL https://deb.nodesource.com/setup_lts.x | bash - && \
     apt-get install -y nodejs
 
+# Install jq
+RUN apt-get update && apt-get install -y jq
+
+# Copy the script into the container
+COPY retrieve_token.sh /usr/local/bin/retrieve_token.sh
+
+# Make the script executable
+RUN chmod +x /usr/local/bin/retrieve_token.sh
+
+# Run the script when the container starts
+ENTRYPOINT ["/usr/local/bin/retrieve_token.sh"]
+
 # Switch back to the Jenkins user
 USER jenkins
