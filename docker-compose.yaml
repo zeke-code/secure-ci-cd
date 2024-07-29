@@ -8,10 +8,6 @@ services:
       - "8080:8080"
     volumes:
       - jenkins_home:/var/jenkins_home
-    depends_on:
-      - token-generator
-    environment:
-      SONARQUBE_TOKEN: ${SONARQUBE_TOKEN}
 
   sonarqube:
     image: sonarqube:lts
@@ -36,19 +32,6 @@ services:
       - POSTGRES_DB=sonar
     volumes:
       - postgres_data:/var/lib/postgresql/data
-
-  token-generator:
-    image: curlimages/curl:7.78.0
-    depends_on:
-      - sonarqube
-    entrypoint: ["/bin/sh", "/scripts/generate_token.sh"]
-    environment:
-      - SONARQUBE_URL=http://localhost:9000
-      - SONARQUBE_ADMIN_USER=admin
-      - SONARQUBE_ADMIN_PASSWORD=admin
-    volumes:
-      - ./scripts:/scripts
-      - ./env:/env
 
 volumes:
   jenkins_home:

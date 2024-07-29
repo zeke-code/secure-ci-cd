@@ -17,5 +17,9 @@ ENV CASC_JENKINS_CONFIG=/var/jenkins_home/casc.yaml
 USER root
 RUN apt-get update && apt-get install -y maven
 
+# Install Node.js (SonarQube scanner dependency)
+RUN curl -fsSL https://deb.nodesource.com/setup_lts.x | bash - && \
+    apt-get install -y nodejs
+
 # Switch back to the Jenkins user
 USER jenkins
