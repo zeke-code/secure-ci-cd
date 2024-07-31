@@ -8,7 +8,9 @@ services:
       - jenkins_home:/var/jenkins_home
     depends_on:
       - sonarqube
-    entrypoint: ["/usr/local/bin/retrieve_token.sh"]
+    environment:
+      - SONARQUBE_TOKEN_FILE=/var/jenkins_home/sonarqube_token.env
+    entrypoint: ["/usr/local/bin/init.sh"]
 
   sonarqube:
     image: sonarqube:lts

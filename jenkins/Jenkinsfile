@@ -2,21 +2,8 @@ pipeline {
     agent any
 
     stages {
-        stage('Load Environment Variable') {
-            steps {
-                script {
-                    def envVars = readFile('/var/jenkins_home/sonarqube_token.env').trim().split('=')
-                    def token = envVars[1]
-                    env.SONARQUBE_TOKEN = token
-                    echo "Loaded SonarQube Token"
-                }
-            }
-        }
-
         stage('Check-out') {
             steps {
-                echo ('THIS IS MY AUTHENTICATION TOKEN')
-                echo "${env.SONARQUBE_TOKEN}"
                 echo ('Cloning repository')
                 git 'https://github.com/shashirajraja/onlinebookstore.git'
             }
@@ -35,19 +22,18 @@ pipeline {
             steps {
                 echo ('Running SonarQube analysis...')
                 withSonarQubeEnv('SonarQube') {
-                    sh "mvn sonar:sonar -Dsonar.login=${env.SONARQUBE_TOKEN}"
+                    sh 'mvn sonar:sonar'
                 }
             }
         }
 
-        stage ('Quality Gate') {
+        stage('Quality Gate') {
             steps {
                 timeout(time: 5, unit: 'MINUTES') {
-                    waitForQualityGate(credentialsId: 'sonarqube-token') abortPipeline: true 
+                    waitForQualityGate abortPipeline: true
                 }
             }
         }
-
 
         stage('Archive') {
             steps {

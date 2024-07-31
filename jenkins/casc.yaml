@@ -8,7 +8,7 @@ jenkins:
     - envVars:
         env:
           - key: SONARQUBE_TOKEN
-            value: "${SONARQUBE_TOKEN}" # Ensure this is defined in the environment
+            value: "${SONARQUBE_TOKEN}"
 
 tool:
   maven:
@@ -39,7 +39,7 @@ credentials:
               scope: GLOBAL
               id: "sonarqube-token"
               description: "SonarQube authentication token"
-              secret: "${SONARQUBE_TOKEN}" # Ensure this is defined in the environment
+              secret: "${SONARQUBE_TOKEN}"
 
 jobs:
   - script: >
@@ -53,8 +53,6 @@ jobs:
                           stages {
                               stage('Check-out') {
                                   steps {
-                                      echo ('THIS IS MY AUTHENTICATION TOKEN')
-                                      echo "\${env.SONARQUBE_TOKEN}"
                                       echo ('Cloning repository')
                                       git 'https://github.com/shashirajraja/onlinebookstore.git'
                                   }
@@ -73,7 +71,7 @@ jobs:
                                   steps {
                                       echo ('Running SonarQube analysis...')
                                       withSonarQubeEnv('SonarQube') {
-                                          sh "mvn sonar:sonar -Dsonar.login=\${env.SONARQUBE_TOKEN}"
+                                          sh 'mvn sonar:sonar'
                                       }
                                   }
                               }
