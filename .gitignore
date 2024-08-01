@@ -1,5 +1,6 @@
 # File to clean docker up to avoid cache errors
 cleanup_docker.sh
+cleanup_docker.bat
 
 # .env file for sensitive information
 .env
