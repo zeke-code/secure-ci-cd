@@ -62,7 +62,7 @@ jobs:
                               stage('Check-out') {
                                   steps {
                                       echo 'Cloning repository'
-                                      git 'https://github.com/shashirajraja/onlinebookstore.git'
+                                      git 'https://github.com/zeke-code/onlinebookstore.git'
                                   }
                               }
 
@@ -81,6 +81,8 @@ jobs:
                                       withSonarQubeEnv('SonarQube') {
                                           sh 'mvn sonar:sonar'
                                       }
+                                      echo 'Running SpotBugs analysis...'
+                                      sh 'mvn com.github.spotbugs:spotbugs-maven-plugin:spotbugs'
                                   }
                               }
 
@@ -108,7 +110,9 @@ jobs:
                               stage('Archive') {
                                   steps {
                                       echo 'Archiving artifacts...'
-                                      archiveArtifacts artifacts: '**/target/*.jar', allowEmptyArchive: true
+                                      archiveArtifacts artifacts: '**/target/*.war', allowEmptyArchive: true
+                                      archiveArtifacts artifacts: '**/target/spotbugsXml.xml', allowEmptyArchive: true
+                                      archiveArtifacts artifacts: '**/dependency-check-report.*', allowEmptyArchive: true
                                   }
                               }
 
