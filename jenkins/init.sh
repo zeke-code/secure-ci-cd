@@ -10,7 +10,7 @@ if [ ! -f "$FLAG_FILE" ]; then
 
 <<COMMENT
   Wait 80 seconds for SonarQube container to start (This time is enough for most machines to get SonarQube container fully running).
-  This method to handle this is indeed VERY ugly but it's the only doable way, since SonarQube's API to check if the system is fully
+  This is indeed VERY ugly but it's the only doable way, since SonarQube's API to check if the system is fully
   up and running doesn't give enough information regarding SonarQube's Web API state.
   Making any kind of HTTP request to SonarQube's web API while the container is still starting results in multiple errors.
   So yeah. This is the way to do this. I know, very ugly, but SonarQube's software is an absolute menace to work with.
