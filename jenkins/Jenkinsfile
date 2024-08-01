@@ -1,6 +1,11 @@
 pipeline {
     agent any
 
+    environment {
+        // Dynamically generate a project key based on the build number
+        PROJECT_KEY = "onlinebookstore-${env.BUILD_NUMBER}"
+    }
+
     stages {
         stage('Check-out') {
             steps {
@@ -19,10 +24,19 @@ pipeline {
         }
 
         stage('SAST Analysis') {
+            environment {
+                scannerHome = tool 'sonarqube-scanner'
+            }
             steps {
                 echo 'Running SonarQube analysis...'
                 withSonarQubeEnv('SonarQube') {
-                    sh 'mvn sonar:sonar'
+                    sh """
+                        ${scannerHome}/bin/sonar-scanner \
+                        -Dsonar.projectKey=${env.PROJECT_KEY} \
+                        -Dsonar.projectName=OnlineBookstore \
+                        -Dsonar.sources=src \
+                        -Dsonar.java.binaries=target/classes
+                    """
                 }
                 echo 'Running SpotBugs analysis...'
                 sh 'mvn com.github.spotbugs:spotbugs-maven-plugin:spotbugs'
@@ -61,14 +75,23 @@ pipeline {
 
         stage('Notify') {
             steps {
-                echo 'Sending notification...'
+                script {
+                    def buildStatus = currentBuild.result ?: 'SUCCESS'
+                    echo "Build result is: ${buildStatus}"
+                    echo "SonarQube results can be viewed at: http://sonarqube:9000/dashboard?id=${env.PROJECT_KEY}"
+                    echo 'SpotBugs report generated.'
+                    echo 'Dependency Check report generated.'
+                }
             }
         }
     }
 
     post {
+        always {
+            recordIssues tools: [spotBugs(pattern: '**/target/spotbugsXml.xml')]
+        }
         failure {
-            echo 'Build failed, sending notification...'
+            echo 'Build failed.'
         }
     }
 }
