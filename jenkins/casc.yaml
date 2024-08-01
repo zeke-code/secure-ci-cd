@@ -19,6 +19,14 @@ tool:
               installers:
                 - maven:
                     id: "3.8.4"
+  dependency-check:
+    installations:
+      - name: "OWASP Dependency-Check"
+        properties:
+          - installSource:
+              installers:
+                - dependencyCheckInstaller:
+                    id: "10.0.3"
 
 unclassified:
   location:
@@ -53,14 +61,14 @@ jobs:
                           stages {
                               stage('Check-out') {
                                   steps {
-                                      echo ('Cloning repository')
+                                      echo 'Cloning repository'
                                       git 'https://github.com/shashirajraja/onlinebookstore.git'
                                   }
                               }
 
                               stage('Build') {
                                   steps {
-                                      echo ('Building project with Maven...')
+                                      echo 'Building project with Maven...'
                                       withMaven(maven: 'maven3') {
                                           sh 'mvn clean install'
                                       }
@@ -69,10 +77,23 @@ jobs:
 
                               stage('SAST Analysis') {
                                   steps {
-                                      echo ('Running SonarQube analysis...')
+                                      echo 'Running SonarQube analysis...'
                                       withSonarQubeEnv('SonarQube') {
                                           sh 'mvn sonar:sonar'
                                       }
+                                  }
+                              }
+
+                              stage('SCA Analysis') {
+                                  steps {
+                                      echo 'Starting SCA Analysis with OWASP dependency scanner...'
+                                      dependencyCheck additionalArguments: ''' 
+                                          -o './'
+                                          -s './'
+                                          -f 'ALL' 
+                                          --prettyPrint''', odcInstallation: 'OWASP Dependency-Check'
+        
+                                      dependencyCheckPublisher pattern: 'dependency-check-report.xml'
                                   }
                               }
 
@@ -86,21 +107,21 @@ jobs:
 
                               stage('Archive') {
                                   steps {
-                                      echo ('Archiving artifacts...')
+                                      echo 'Archiving artifacts...'
                                       archiveArtifacts artifacts: '**/target/*.jar', allowEmptyArchive: true
                                   }
                               }
 
                               stage('Notify') {
                                   steps {
-                                      echo ('Sending notification...')
+                                      echo 'Sending notification...'
                                   }
                               }
                           }
 
                           post {
                               failure {
-                                  echo ('Build failed, sending notification...')
+                                  echo 'Build failed, sending notification...'
                               }
                           }
                       }

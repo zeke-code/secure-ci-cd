@@ -4,14 +4,14 @@ pipeline {
     stages {
         stage('Check-out') {
             steps {
-                echo ('Cloning repository')
+                echo 'Cloning repository'
                 git 'https://github.com/shashirajraja/onlinebookstore.git'
             }
         }
 
         stage('Build') {
             steps {
-                echo ('Building project with Maven...')
+                echo 'Building project with Maven...'
                 withMaven(maven: 'maven3') {
                     sh 'mvn clean install'
                 }
@@ -20,12 +20,25 @@ pipeline {
 
         stage('SAST Analysis') {
             steps {
-                echo ('Running SonarQube analysis...')
+                echo 'Running SonarQube analysis...'
                 withSonarQubeEnv('SonarQube') {
                     sh 'mvn sonar:sonar'
                 }
             }
         }
+
+        stage('SCA Analysis') {
+            steps {
+                echo 'Starting SCA Analysis with OWASP dependency scanner...'
+                dependencyCheck additionalArguments: ''' 
+                    -o './'
+                    -s './'
+                    -f 'ALL' 
+                    --prettyPrint''', odcInstallation: 'OWASP Dependency-Check'
+        
+        dependencyCheckPublisher pattern: 'dependency-check-report.xml'
+        }
+    }
 
         stage('Quality Gate') {
             steps {
@@ -37,21 +50,21 @@ pipeline {
 
         stage('Archive') {
             steps {
-                echo ('Archiving artifacts...')
+                echo 'Archiving artifacts...'
                 archiveArtifacts artifacts: '**/target/*.jar', allowEmptyArchive: true
             }
         }
 
         stage('Notify') {
             steps {
-                echo ('Sending notification...')
+                echo 'Sending notification...'
             }
         }
     }
 
     post {
         failure {
-            echo ('Build failed, sending notification...')
+            echo 'Build failed, sending notification...'
         }
     }
 }

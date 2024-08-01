@@ -9,7 +9,7 @@ WEBHOOK_URL="http://jenkins:8080/sonarqube-webhook"
 if [ ! -f "$FLAG_FILE" ]; then
 
   # Wait for SonarQube container to start
-  sleep 80
+  sleep 60
 
   # Create webhook for quality gate through API
   curl -u admin:admin -X POST 'http://sonarqube:9000/api/webhooks/create' -d "name=$WEBHOOK_NAME&url=$WEBHOOK_URL"

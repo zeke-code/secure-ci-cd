@@ -34,10 +34,8 @@ build_image_if_needed() {
     fi
 }
 
-# Build the custom Jenkins image if necessary
 build_image_if_needed jenkins-server ./jenkins
 
-# Start the application
 docker compose up
 if [ $? -ne 0 ]; then
     echo "Failed to start Docker Compose. Exiting."
