@@ -24,9 +24,6 @@ COMMENT
   # Create SonarQube token through API
   TOKEN=$(curl -u admin:admin -X POST 'http://sonarqube:9000/api/user_tokens/generate' -d "name=jenkins-token" | jq -r .token)
 
-  # Save token to a file
-  echo $TOKEN > $TOKEN_FILE
-
   # Export the token as an environment variable for Jenkins
   export SONARQUBE_TOKEN=$TOKEN
 

@@ -4,6 +4,8 @@ pipeline {
     environment {
         // Dynamically generate a project key based on the build number
         PROJECT_KEY = "onlinebookstore-${env.BUILD_NUMBER}"
+        // Sonarqube scanner tool name in Jenkins configuration
+        scannerHome = tool 'sonarqube-scanner'
     }
 
     stages {
@@ -24,9 +26,6 @@ pipeline {
         }
 
         stage('SAST Analysis') {
-            environment {
-                scannerHome = tool 'sonarqube-scanner'
-            }
             steps {
                 echo 'Running SonarQube analysis...'
                 withSonarQubeEnv('SonarQube') {
@@ -79,8 +78,9 @@ pipeline {
                     def buildStatus = currentBuild.result ?: 'SUCCESS'
                     echo "Build result is: ${buildStatus}"
                     echo "SonarQube results can be viewed at: http://sonarqube:9000/dashboard?id=${env.PROJECT_KEY}"
-                    echo 'SpotBugs report generated.'
-                    echo 'Dependency Check report generated.'
+                    echo "SpotBugs report can be viewed at: ${env.BUILD_URL}spotbugs/"
+                    echo "Dependency Check report can be viewed at: ${env.BUILD_URL}dependency-check-findings/"
+                    echo "Complete logs can be found at: ${env.BUILD_URL}console"
                 }
             }
         }
@@ -91,7 +91,10 @@ pipeline {
             recordIssues tools: [spotBugs(pattern: '**/target/spotbugsXml.xml')]
         }
         failure {
-            echo 'Build failed.'
+            echo 'Build failed. Please check the logs for more information.'
+            echo "Build Number: ${env.BUILD_NUMBER}"
+            echo "Build URL: ${env.BUILD_URL}"
+            echo "Build Result: ${currentBuild.result}"
         }
     }
 }

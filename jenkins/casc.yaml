@@ -4,12 +4,6 @@ jenkins:
   authorizationStrategy:
     unsecured: {}
 
-  globalNodeProperties:
-    - envVars:
-        env:
-          - key: SONARQUBE_TOKEN
-            value: "${SONARQUBE_TOKEN}"
-
 tool:
   maven:
     installations:
