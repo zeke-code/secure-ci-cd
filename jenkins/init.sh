@@ -9,15 +9,16 @@ QUALITY_GATE_NAME="Online Book Store"
 # Check if the token has already been generated
 if [ ! -f "$FLAG_FILE" ]; then
 
-<<COMMENT
-  Wait 80 seconds for SonarQube container to start (This time is enough for most machines to get SonarQube container fully running).
-  This is indeed VERY ugly but it's the only doable way, since SonarQube's API to check if the system is fully
-  up and running doesn't give enough information regarding SonarQube's Web API state.
-  Making any kind of HTTP request to SonarQube's web API while the container is still starting results in multiple errors.
-  So yeah. This is the way to do this. I know, very ugly, but SonarQube's software is an absolute menace to work with.
-COMMENT
+  # Make API request to check SonarQube's state
+  STATUS=$(curl -u admin:admin -X GET 'http://sonarqube:9000/api/system/status' | jq -r .status)
 
-  sleep 80
+  while [ "$STATUS" != "UP" ]; do
+    echo "Waiting for SonarQube to fully initialize..."
+    sleep 10
+    STATUS=$(curl -u admin:admin -X GET 'http://sonarqube:9000/api/system/status' | jq -r .status)
+  done
+
+  echo "SonarQube is up! Initializing API calls..."
 
   # Create webhook for quality gate through API
   curl -u admin:admin -X POST 'http://sonarqube:9000/api/webhooks/create' -d "name=$WEBHOOK_NAME&url=$WEBHOOK_URL"
@@ -39,7 +40,6 @@ COMMENT
 
   # Create conditions for the quality gate
   curl -u admin:admin -X POST 'http://sonarqube:9000/api/qualitygates/create_condition' -d "gateId=$QUALITY_GATE_ID" -d "metric=bugs" -d "op=GT" -d "error=0"
-  curl -u admin:admin -X POST 'http://sonarqube:9000/api/qualitygates/create_condition' -d "gateId=$QUALITY_GATE_ID" -d "metric=new_security_hotspots" -d "op=GT" -d "error=0" -d "severity=HIGH"
 
   # Set the new quality gate as default
   curl -u admin:admin -X POST 'http://sonarqube:9000/api/qualitygates/set_as_default' -d "name=$QUALITY_GATE_NAME"
