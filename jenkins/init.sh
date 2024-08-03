@@ -4,6 +4,7 @@ FLAG_FILE="/var/jenkins_home/sonarqube_token_generated.flag"
 TOKEN_FILE="/var/jenkins_home/sonarqube_token.env"
 WEBHOOK_NAME="jenkins"
 WEBHOOK_URL="http://jenkins:8080/sonarqube-webhook"
+QUALITY_GATE_NAME="Online Book Store"
 
 # Check if the token has already been generated
 if [ ! -f "$FLAG_FILE" ]; then
@@ -26,6 +27,22 @@ COMMENT
 
   # Export the token as an environment variable for Jenkins
   export SONARQUBE_TOKEN=$TOKEN
+
+  # Save the token to a file for future use
+  echo $TOKEN > "$TOKEN_FILE"
+
+  # Create quality gate
+  curl -u admin:admin -X POST 'http://sonarqube:9000/api/qualitygates/create' -d "name=$QUALITY_GATE_NAME"
+
+  # Get the quality gate ID
+  QUALITY_GATE_ID=$(curl -u admin:admin -X GET 'http://sonarqube:9000/api/qualitygates/list' | jq -r ".qualitygates[] | select(.name==\"$QUALITY_GATE_NAME\") | .id")
+
+  # Create conditions for the quality gate
+  curl -u admin:admin -X POST 'http://sonarqube:9000/api/qualitygates/create_condition' -d "gateId=$QUALITY_GATE_ID" -d "metric=bugs" -d "op=GT" -d "error=0"
+  curl -u admin:admin -X POST 'http://sonarqube:9000/api/qualitygates/create_condition' -d "gateId=$QUALITY_GATE_ID" -d "metric=new_security_hotspots" -d "op=GT" -d "error=0" -d "severity=HIGH"
+
+  # Set the new quality gate as default
+  curl -u admin:admin -X POST 'http://sonarqube:9000/api/qualitygates/set_as_default' -d "name=$QUALITY_GATE_NAME"
 
   # Create the flag file to indicate that the token has been generated
   touch "$FLAG_FILE"

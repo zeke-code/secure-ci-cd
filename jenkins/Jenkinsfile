@@ -2,9 +2,7 @@ pipeline {
     agent any
 
     environment {
-        // Dynamically generate a project key based on the build number
         PROJECT_KEY = "onlinebookstore-${env.BUILD_NUMBER}"
-        // Sonarqube scanner tool name in Jenkins configuration
         scannerHome = tool 'sonarqube-scanner'
     }
 
@@ -25,7 +23,7 @@ pipeline {
             }
         }
 
-        stage('SAST Analysis') {
+        stage('First SAST Analysis') {
             steps {
                 echo 'Running SonarQube analysis...'
                 withSonarQubeEnv('SonarQube') {
@@ -37,8 +35,38 @@ pipeline {
                         -Dsonar.java.binaries=target/classes
                     """
                 }
-                echo 'Running SpotBugs analysis...'
-                sh 'mvn com.github.spotbugs:spotbugs-maven-plugin:spotbugs'
+            }
+        }
+
+        stage('First Quality Gate') {
+            steps {
+                timeout(time: 5, unit: 'MINUTES') {
+                    waitForQualityGate abortPipeline: false
+                }
+            }
+        }
+
+        stage('Second SAST Analysis') {
+            steps {
+                echo "Changing branch to safer code to pass quality gate..."
+                script {
+                    sh 'git checkout fixed-code'
+                    echo 'Rebuilding project with Maven...'
+                    withMaven(maven: 'maven3') {
+                        sh 'mvn clean install'
+                    }
+                    withSonarQubeEnv('SonarQube') {
+                        sh """
+                            ${scannerHome}/bin/sonar-scanner \
+                            -Dsonar.projectKey=${env.PROJECT_KEY}-fixed-code \
+                            -Dsonar.projectName=OnlineBookstore \
+                            -Dsonar.sources=src \
+                            -Dsonar.java.binaries=target/classes
+                        """
+                    }
+                    echo 'Running SpotBugs analysis...'
+                    sh 'mvn com.github.spotbugs:spotbugs-maven-plugin:spotbugs'
+                }
             }
         }
 
@@ -55,7 +83,7 @@ pipeline {
             }
         }
 
-        stage('Quality Gate') {
+        stage('Second Quality gate') {
             steps {
                 timeout(time: 5, unit: 'MINUTES') {
                     waitForQualityGate abortPipeline: true
