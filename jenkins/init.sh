@@ -29,9 +29,6 @@ if [ ! -f "$FLAG_FILE" ]; then
   # Export the token as an environment variable for Jenkins
   export SONARQUBE_TOKEN=$TOKEN
 
-  # Save the token to a file for future use
-  echo $TOKEN > "$TOKEN_FILE"
-
   # Create quality gate
   curl -u admin:admin -X POST 'http://sonarqube:9000/api/qualitygates/create' -d "name=$QUALITY_GATE_NAME"
 
@@ -48,12 +45,6 @@ if [ ! -f "$FLAG_FILE" ]; then
   touch "$FLAG_FILE"
 else
   echo "Token has already been generated. Loading from file."
-  if [ -f "$TOKEN_FILE" ]; then
-    export SONARQUBE_TOKEN=$(cat $TOKEN_FILE)
-  else
-    echo "Error: Token file not found."
-    exit 1
-  fi
 fi
 
 # Start Jenkins

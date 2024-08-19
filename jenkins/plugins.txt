@@ -3,6 +3,5 @@ blueocean:1.27.14
 git:5.2.2
 pipeline-maven:1421.v610fa_b_e2d60e
 configuration-as-code:1836.vccda_4a_122a_a_e
-job-dsl:1.87
 dependency-check-jenkins-plugin:5.5.1
 warnings-ng:11.3.0
